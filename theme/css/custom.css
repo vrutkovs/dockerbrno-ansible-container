@@ -34,6 +34,16 @@ slides footer.source {
     line-height: 1.9;
 }
 
+pre {
+    font-family: 'Source Code Pro', 'Inconsolata', 'Courier New', monospace;
+    font-size: 20px;
+    line-height: 20px;
+}
+
 pre b {
     font-weight: normal;
+}
+
+pre.fullslide {
+    margin-top: -40px;
 }

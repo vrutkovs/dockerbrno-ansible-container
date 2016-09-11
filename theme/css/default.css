@@ -556,9 +556,6 @@ pre {
   /*overflow: hidden;*/
 }
 
-pre.fullslide {
-    margin-top: -50px;
-}
 /* line 384, ../scss/default.scss */
 pre[data-lang]:after {
   content: attr(data-lang);

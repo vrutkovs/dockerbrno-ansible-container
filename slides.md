@@ -46,19 +46,15 @@ RUN apt-get update && \
 </pre>
 
 ---
-title: ansible-container
-class: segue dark nobackground
-
----
-title: FAQ
+title: Ansible Container
 build_lists: true
 
 Ansible Container is a tool to build Docker images and orchestrate containers using only Ansible playbooks.
 
 <pre class='prettyprint'>
+https://github.com/ansible/ansible-container
 sudo pip install ansible-container
 </pre>
-
 
 How it works:
 
@@ -66,7 +62,7 @@ How it works:
  - `build` runs Ansible playbooks to build an image
  - `run` launches the container
  - `push` pushes the built image to the registry
- - `shipit` deploye the container to a cloud provider
+ - `shipit` deploy the container to a cloud provider
 
 ---
 title: Directory structure after `init`
@@ -119,6 +115,7 @@ title: main.yml - playbook
   tasks:
     - name: Upgrade all packages
       yum: name=* state=latest
+
     - name: Install grafana
       yum: name="{{ rpm }}" state=present
     <b>
@@ -131,12 +128,14 @@ title: main.yml - playbook
     </b>
     - name: Copy config file
       copy: src="grafana.ini" dest=/etc/grafana owner=grafana
+
     - name: Make sure grafana user is the owner of its dirs
       file: name={{ item }} state=directory owner=grafana recurse=true
       with_items:
         - /grafana-plugins
         - /var/lib/grafana
         - /var/log/grafana
+
     - name: Clean yum files
       command: yum clean all
 </pre>
@@ -145,15 +144,15 @@ title: main.yml - playbook
 title: Build process
 
  - Creates `ansible_ansible-container` and `ansible_<service name>` containers
- - Connects from ansible-container to a service container
+ - `ansible-container` connects to service containers
  - Runs the playbook 
- - Commits the image
- - Has an option to squash image in one layer
+ - Commits the resulting images
+ - Can flatten the image in one layer
 
 ---
 title: Build log
 
-<pre class='fullslide'>
+<pre class='fullslide prettyprint'>
 Starting Docker Compose engine to build your images...
 Attaching to ansible_ansible-container_1
 Attaching to ansible_ansible-container_1, ansible_grafana_1
@@ -204,3 +203,9 @@ A very young project, has lots of plans:
 - Detached run, stop and restart
 - Custom volumes and build variables
 - rkt and OCI support
+
+[Github](https://github.com/ansible/ansible-container)
+
+[Docs](https://docs.ansible.com/ansible-container/)
+
+ #ansible-container on Freenode
