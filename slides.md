@@ -21,7 +21,7 @@ Why I didn't like default Grafana-XXL image from dockerhub:
 - Doesn't have read-only anonymous access
 
 ---
-title: Enter the Dockerfile madness
+title: Dockerfile + shell = hell
 
 <pre class="prettyprint">
 ENV GRAFANA_VERSION=3.1.1-1470047149 \
@@ -47,25 +47,25 @@ RUN apt-get update && \
 
 ---
 title: Ansible Container
-build_lists: true
 
-Ansible Container is a tool to build Docker images and orchestrate containers using only Ansible playbooks.
-
+[https://github.com/ansible/ansible-container](https://github.com/ansible/ansible-container)
 <pre class='prettyprint'>
-https://github.com/ansible/ansible-container
 sudo pip install ansible-container
 </pre>
 
-How it works:
+A tool to build Docker images and orchestrate containers using only Ansible playbooks
+instead of Dockerfile + shell + docker-compose combination.
 
- - `init` prepares directory structure
- - `build` runs Ansible playbooks to build an image
- - `run` launches the container
- - `push` pushes the built image to the registry
- - `shipit` deploy the container to a cloud provider
+Ansible Container allows using some ansible features:
+
+- Vars
+- Templates
+- Roles
 
 ---
-title: Directory structure after `init`
+title: Directory structure
+
+`ansible-container init` creates initial files:
 
 <pre>
 .
@@ -135,7 +135,6 @@ title: main.yml - playbook
         - /grafana-plugins
         - /var/lib/grafana
         - /var/log/grafana
-
     - name: Clean yum files
       command: yum clean all
 </pre>

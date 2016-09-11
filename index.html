@@ -91,7 +91,7 @@ URL: https://code.google.com/p/io-2012-slides
 <slide  >
   
     <hgroup>
-      <h2>Enter the Dockerfile madness</h2>
+      <h2>Dockerfile + shell = hell</h2>
       <h3></h3>
     </hgroup>
     <article ><pre class="prettyprint">
@@ -124,19 +124,17 @@ RUN apt-get update && \
       <h2>Ansible Container</h2>
       <h3></h3>
     </hgroup>
-    <article ><p>Ansible Container is a tool to build Docker images and orchestrate containers using only Ansible playbooks.</p>
+    <article ><p><a href="https://github.com/ansible/ansible-container">https://github.com/ansible/ansible-container</a>
 <pre class='prettyprint'>
-https://github.com/ansible/ansible-container
 sudo pip install ansible-container
-</pre>
-
-<p>How it works:</p>
-<ul class="build">
-<li><code>init</code> prepares directory structure</li>
-<li><code>build</code> runs Ansible playbooks to build an image</li>
-<li><code>run</code> launches the container</li>
-<li><code>push</code> pushes the built image to the registry</li>
-<li><code>shipit</code> deploy the container to a cloud provider</li>
+</pre></p>
+<p>A tool to build Docker images and orchestrate containers using only Ansible playbooks
+instead of Dockerfile + shell + docker-compose combination.</p>
+<p>Ansible Container allows using some ansible features:</p>
+<ul>
+<li>Vars</li>
+<li>Templates</li>
+<li>Roles</li>
 </ul></article>
  
 </slide>
@@ -144,10 +142,11 @@ sudo pip install ansible-container
 <slide  >
   
     <hgroup>
-      <h2>Directory structure after `init`</h2>
+      <h2>Directory structure</h2>
       <h3></h3>
     </hgroup>
-    <article ><pre>
+    <article ><p><code>ansible-container init</code> creates initial files:</p>
+<pre>
 .
 └── ansible
     ├── container.yml
@@ -226,7 +225,6 @@ registries:
         - /grafana-plugins
         - /var/lib/grafana
         - /var/log/grafana
-
     - name: Clean yum files
       command: yum clean all
 </pre></article>
