@@ -1,0 +1,358 @@
+<!--
+slidedeck: A modification of the Google IO 2012 HTML5 slide template
+URL: https://github.com/rmcgibbo/slidedeck
+
+Based on https://github.com/francescolaffi/elastic-google-io-slides, and
+ultimately:
+
+Google IO 2012 HTML5 Slide Template
+Authors: Eric Bidelman <ebidel@gmail.com>
+         Luke Mahe <lukem@google.com>
+URL: https://code.google.com/p/io-2012-slides
+-->
+<!DOCTYPE html>
+<html>
+<head>
+  <title> Ansible-container</title>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <!--<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">-->
+  <!--<meta name="viewport" content="width=device-width, initial-scale=1.0">-->
+  <!--This one seems to work all the time, but really small on ipad-->
+  <!--<meta name="viewport" content="initial-scale=0.4">-->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+   <link rel="shortcut icon" href=" http://www.stanford.edu/favicon.ico"/> 
+  <link rel="stylesheet" media="all" href="theme/css/default.css">
+  <link rel="stylesheet" media="all" href="theme/css/custom.css">
+  <link rel="stylesheet" media="only screen and (max-device-width: 480px)" href="theme/css/phone.css">
+  <base target="_blank"> <!-- This amazingness opens all links in a new tab. -->
+  <script data-main="js/slides", src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.14/require.min.js"></script>
+
+
+  <!-- MathJax support  -->
+  <script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    extensions: ["tex2jax.js"],
+    jax: ["input/TeX", "output/HTML-CSS"],
+    showProcessingMessages: false,
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+      processEscapes: true
+    },
+    TeX: {
+      extensions: ["color.js"]
+    },
+    "HTML-CSS": { availableFonts: ["TeX"] }
+  });
+  </script>
+  <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  <div style="display:hidden">
+  \[
+    \definecolor{data}{RGB}{18,110,213}
+    \definecolor{unknown}{RGB}{217,86,16}
+    \definecolor{learned}{RGB}{175,114,176}
+  \]
+  </div>
+
+</head>
+
+<body style="opacity: 0">
+
+<slides class="layout-widescreen">
+<slide class="title-slide segue nobackground">
+  <hgroup class="auto-fadein">
+
+    <h1> Ansible-container</h1>
+    <h2> Building a Docker image without Dockerfile and shell</h2>
+    <p> Vadim Rutkovsky<br/> Red Hat Czech, http://github.com/vrutkovs</p>
+  </hgroup>
+</slide>
+
+
+<slide  >
+  
+    <hgroup>
+      <h2>Typical case</h2>
+      <h3></h3>
+    </hgroup>
+    <article ><p>Grafana - an app to build dashboards and grafs from various sources</p>
+<p>Default choice: </p>
+<p>Why I didn't like default Grafana-XXL image from dockerhub:</p>
+<ul class="build">
+<li>Bloated: all the grafana plugins installed</li>
+<li>Bloated: uses gosu to run</li>
+<li>Has auto-upgrade on</li>
+<li>Doesn't have read-only anonymous access</li>
+</ul></article>
+ 
+</slide>
+
+<slide  >
+  
+    <hgroup>
+      <h2>Enter the Dockerfile madness</h2>
+      <h3></h3>
+    </hgroup>
+    <article ><pre class="prettyprint">
+ENV GRAFANA_VERSION=3.1.1-1470047149 \
+    GF_PLUGIN_DIR=/grafana-plugins \
+    UPGRADEALL=true
+
+COPY ./run.sh /run.sh
+
+RUN apt-get update && \
+  apt-get -y --force-yes --no-install-recommends 
+      install libfontconfig curl ca-certificates git jq && \
+  curl https://grafanarel.s3.amazonaws.com/builds/grafana_${GRAFANA_VERSION}_amd64.deb >
+      /tmp/grafana.deb && \
+  dpkg -i /tmp/grafana.deb && \
+  rm /tmp/grafana.deb && \
+  curl -L https://github.com/tianon/gosu/releases/download/1.7/gosu-amd64 
+      > /usr/sbin/gosu && \
+  chmod +x /usr/sbin/gosu && \
+<b>for plugin in $(curl -s https://grafana.net/api/plugins?orderBy=name | 
+      jq '.items[] | select(.internal=='false') | .slug' | tr -d '"'); do 
+      grafana-cli --pluginsDir "${GF_PLUGIN_DIR}" plugins install $plugin; done</b>
+</pre></article>
+ 
+</slide>
+
+<slide class="segue dark nobackground" >
+  
+    <!-- <aside class="gdbar"><img src="images/google_developers_icon_128.png"></aside> -->
+    <hgroup class="auto-fadein">
+      <h2>ansible-container</h2>
+      <h3></h3>
+    </hgroup>
+  
+</slide>
+
+<slide  >
+  
+    <hgroup>
+      <h2>FAQ</h2>
+      <h3></h3>
+    </hgroup>
+    <article ><p>Ansible Container is a tool to build Docker images and orchestrate containers using only Ansible playbooks.</p>
+<pre class='prettyprint'>
+sudo pip install ansible-container
+</pre>
+
+<p>How it works:</p>
+<ul class="build">
+<li><code>init</code> prepares directory structure</li>
+<li><code>build</code> runs Ansible playbooks to build an image</li>
+<li><code>run</code> launches the container</li>
+<li><code>push</code> pushes the built image to the registry</li>
+<li><code>shipit</code> deploye the container to a cloud provider</li>
+</ul></article>
+ 
+</slide>
+
+<slide  >
+  
+    <hgroup>
+      <h2>Directory structure after `init`</h2>
+      <h3></h3>
+    </hgroup>
+    <article ><pre>
+.
+└── ansible
+    ├── container.yml
+    ├── main.yml
+    └── requirements.txt
+</pre>
+
+<ul>
+<li><code>main.yml</code> - playbook to build the image</li>
+<li><code>container.yml</code> - orchestration</li>
+<li><code>requirements.txt</code> - requirements for ansible module</li>
+</ul></article>
+ 
+</slide>
+
+<slide  >
+  
+    <hgroup>
+      <h2>container.yml - orchestration</h2>
+      <h3></h3>
+    </hgroup>
+    <article ><pre class='prettyprint'>
+version: "1"
+services:
+  grafana:
+    image: centos:7
+    ports:
+      - "3000:3000"
+    user: "grafana"
+    command: ["/usr/sbin/grafana-server",
+              "--homepath=/usr/share/grafana",
+              "--config=/etc/grafana/grafana.ini",
+              "cfg:default.paths.data=/var/lib/grafana",
+              "cfg:default.paths.logs=/var/log/grafana",
+              "cfg:default.paths.plugins=/grafana-plugins"]
+<b>
+registries:
+  atomicregistry:
+    url: atomic-registry.usersys.redhat.com:5000
+    namespace: vrutkovs
+</b>
+</pre></article>
+ 
+</slide>
+
+<slide  >
+  
+    <hgroup>
+      <h2>main.yml - playbook</h2>
+      <h3></h3>
+    </hgroup>
+    <article ><pre class='prettyprint fullslide'>
+- hosts: grafana
+  vars:
+    rpm: https://grafanarel.s3.amazonaws.com/builds/grafana-3.1.1-1470047149.x86_64.rpm
+  tasks:
+    - name: Upgrade all packages
+      yum: name=* state=latest
+    - name: Install grafana
+      yum: name="{{ rpm }}" state=present
+    <b>
+    - name: Install plugins
+      command: grafana-cli --pluginsDir /grafana-plugins plugins install {{ item }}
+      with_items:
+        - grafana-piechart-panel
+        - alexanderzobnin-zabbix-app
+        - mtanda-histogram-panel
+    </b>
+    - name: Copy config file
+      copy: src="grafana.ini" dest=/etc/grafana owner=grafana
+    - name: Make sure grafana user is the owner of its dirs
+      file: name={{ item }} state=directory owner=grafana recurse=true
+      with_items:
+        - /grafana-plugins
+        - /var/lib/grafana
+        - /var/log/grafana
+    - name: Clean yum files
+      command: yum clean all
+</pre></article>
+ 
+</slide>
+
+<slide  >
+  
+    <hgroup>
+      <h2>Build process</h2>
+      <h3></h3>
+    </hgroup>
+    <article ><ul>
+<li>Creates <code>ansible_ansible-container</code> and <code>ansible_&lt;service name&gt;</code> containers</li>
+<li>Connects from ansible-container to a service container</li>
+<li>Runs the playbook </li>
+<li>Commits the image</li>
+<li>Has an option to squash image in one layer</li>
+</ul></article>
+ 
+</slide>
+
+<slide  >
+  
+    <hgroup>
+      <h2>Build log</h2>
+      <h3></h3>
+    </hgroup>
+    <article ><pre class='fullslide'>
+Starting Docker Compose engine to build your images...
+Attaching to ansible_ansible-container_1
+Attaching to ansible_ansible-container_1, ansible_grafana_1
+ansible-container_1  | 
+ansible-container_1  | PLAY [grafana] ********************************************
+ansible-container_1  | 
+ansible-container_1  | TASK [setup] **********************************************
+ansible-container_1  | ok: [grafana]
+ansible-container_1  | 
+ansible-container_1  | TASK [Upgrade all packages] *******************************
+ansible-container_1  | ok: [grafana]
+ansible-container_1  |
+
+[snip]
+
+ansible-container_1  | PLAY RECAP ************************************************
+ansible-container_1  | grafana: ok=7    changed=2    unreachable=0    failed=0   
+ansible-container_1  | 
+ansible_ansible-container_1 exited with code 0
+Aborting on container exit...
+Stopping ansible_grafana_1 ... 
+Stopping ansible_grafana_1 ... done
+Exporting built containers as images...
+Committing image...
+Exported grafana-xxl-grafana with image ID 
+    sha256:c15c6a907eb24e0f2384e0bf7744986e793a699b5741a644fb64ab8613704cec
+Cleaning up grafana build container...
+Cleaning up Ansible Container builder...
+</pre></article>
+ 
+</slide>
+
+<slide  >
+  
+    <hgroup>
+      <h2>Running and shipping it</h2>
+      <h3></h3>
+    </hgroup>
+    <article ><p><code>run</code> starts services according to their description in <code>container.yml</code></p>
+<p><code>push</code> pushes the resulting image to a specified registry</p>
+<p><code>shipit kubernetes</code> creates a playbook which deploys the image to a k8s cluster</p>
+<p><code>shipit openshift</code> same for Openshift</p></article>
+ 
+</slide>
+
+<slide  >
+  
+    <hgroup>
+      <h2>Future</h2>
+      <h3></h3>
+    </hgroup>
+    <article ><p>A very young project, has lots of plans:</p>
+<ul>
+<li>Build caching</li>
+<li>Detached run, stop and restart</li>
+<li>Custom volumes and build variables</li>
+<li>rkt and OCI support</li>
+</ul></article>
+ 
+</slide>
+
+
+<slide class="thank-you-slide segue nobackground">
+  <!-- <aside class="gdbar right"><img src="images/google_developers_icon_128.png"></aside> -->
+  <article class="flexbox vleft auto-fadein">
+    <h2> Thanks! Questions?</h2>
+    <p></p>
+  </article>
+  <p data-config-contact class="auto-fadein"></p>
+  </p>
+</slide>
+
+<slide class="backdrop"></slide>
+
+</slides>
+
+<script>
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-XXXXXXXX-1']);
+_gaq.push(['_trackPageview']);
+
+(function() {
+  var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+  ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+  var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})();
+</script>
+
+<!--[if IE]>
+  <script src="http://ajax.googleapis.com/ajax/libs/chrome-frame/1/CFInstall.min.js"></script>
+  <script>CFInstall.check({mode: 'overlay'});</script>
+<![endif]-->
+</body>
+</html>
