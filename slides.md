@@ -203,8 +203,8 @@ A very young project, has lots of plans:
 - Custom volumes and build variables
 - rkt and OCI support
 
-[Github](https://github.com/ansible/ansible-container)
+[Github](https://github.com/ansible/ansible-container): https://github.com/ansible/ansible-container
 
-[Docs](https://docs.ansible.com/ansible-container/)
+[Docs](https://docs.ansible.com/ansible-container/): https://docs.ansible.com/ansible-container
 
  #ansible-container on Freenode
