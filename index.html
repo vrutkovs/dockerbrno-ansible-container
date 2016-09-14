@@ -64,7 +64,7 @@ URL: https://code.google.com/p/io-2012-slides
   <hgroup class="auto-fadein">
 
     <h1> Ansible-container</h1>
-    <h2> Building a Docker image without Dockerfile and shell</h2>
+    <h2> Look mom, no Dockerfile!</h2>
     <p> Vadim Rutkovsky<br/> Red Hat Czech, http://github.com/vrutkovs</p>
   </hgroup>
 </slide>
@@ -77,12 +77,12 @@ URL: https://code.google.com/p/io-2012-slides
       <h3></h3>
     </hgroup>
     <article ><p>Grafana - an app to build dashboards and grafs from various sources</p>
-<p>Default choice: </p>
+<p>Default choice: monitoringartist/grafana-xxl</p>
 <p>Why I didn't like default Grafana-XXL image from dockerhub:</p>
 <ul class="build">
 <li>Bloated: all the grafana plugins installed</li>
 <li>Bloated: uses gosu to run</li>
-<li>Has auto-upgrade on</li>
+<li>Has auto-upgrade on by default</li>
 <li>Doesn't have read-only anonymous access</li>
 </ul></article>
  
@@ -102,20 +102,30 @@ ENV GRAFANA_VERSION=3.1.1-1470047149 \
 COPY ./run.sh /run.sh
 
 RUN apt-get update && \
-  apt-get -y --force-yes --no-install-recommends 
-      install libfontconfig curl ca-certificates git jq && \
+  apt-get -y --force-yes --no-install-recommends install libfontconfig \
+      curl ca-certificates git jq && \
   curl https://grafanarel.s3.amazonaws.com/builds/grafana_${GRAFANA_VERSION}_amd64.deb >
       /tmp/grafana.deb && \
   dpkg -i /tmp/grafana.deb && \
   rm /tmp/grafana.deb && \
-  curl -L https://github.com/tianon/gosu/releases/download/1.7/gosu-amd64 
-      > /usr/sbin/gosu && \
+  curl -L https://github.com/tianon/gosu/releases/download/1.7/gosu-amd64 > \
+      /usr/sbin/gosu && \
   chmod +x /usr/sbin/gosu && \
 <b>for plugin in $(curl -s https://grafana.net/api/plugins?orderBy=name | 
       jq '.items[] | select(.internal=='false') | .slug' | tr -d '"'); do 
       grafana-cli --pluginsDir "${GF_PLUGIN_DIR}" plugins install $plugin; done</b>
 </pre></article>
  
+</slide>
+
+<slide class="segue dark nobackground" >
+  
+    <!-- <aside class="gdbar"><img src="images/google_developers_icon_128.png"></aside> -->
+    <hgroup class="auto-fadein">
+      <h2>Ansible Container</h2>
+      <h3></h3>
+    </hgroup>
+  
 </slide>
 
 <slide  >
@@ -130,7 +140,7 @@ sudo pip install ansible-container
 </pre></p>
 <p>A tool to build Docker images and orchestrate containers using only Ansible playbooks
 instead of Dockerfile + shell + docker-compose combination.</p>
-<p>Ansible Container allows using some ansible features:</p>
+<p>Ansible Container allows using several ansible features:</p>
 <ul>
 <li>Vars</li>
 <li>Templates</li>

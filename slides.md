@@ -1,5 +1,5 @@
 % title: Ansible-container
-% subtitle: Building a Docker image without Dockerfile and shell
+% subtitle: Look mom, no Dockerfile!
 % author: Vadim Rutkovsky
 % author: Red Hat Czech, http://github.com/vrutkovs
 % thankyou: Thanks! Questions?
@@ -11,13 +11,13 @@ build_lists: true
 
 Grafana - an app to build dashboards and grafs from various sources
 
-Default choice: 
+Default choice: monitoringartist/grafana-xxl
 
 Why I didn't like default Grafana-XXL image from dockerhub:
 
 - Bloated: all the grafana plugins installed
 - Bloated: uses gosu to run
-- Has auto-upgrade on
+- Has auto-upgrade on by default
 - Doesn't have read-only anonymous access
 
 ---
@@ -31,19 +31,23 @@ ENV GRAFANA_VERSION=3.1.1-1470047149 \
 COPY ./run.sh /run.sh
 
 RUN apt-get update && \
-  apt-get -y --force-yes --no-install-recommends 
-      install libfontconfig curl ca-certificates git jq && \
+  apt-get -y --force-yes --no-install-recommends install libfontconfig \
+      curl ca-certificates git jq && \
   curl https://grafanarel.s3.amazonaws.com/builds/grafana_${GRAFANA_VERSION}_amd64.deb >
       /tmp/grafana.deb && \
   dpkg -i /tmp/grafana.deb && \
   rm /tmp/grafana.deb && \
-  curl -L https://github.com/tianon/gosu/releases/download/1.7/gosu-amd64 
-      > /usr/sbin/gosu && \
+  curl -L https://github.com/tianon/gosu/releases/download/1.7/gosu-amd64 > \
+      /usr/sbin/gosu && \
   chmod +x /usr/sbin/gosu && \
 <b>for plugin in $(curl -s https://grafana.net/api/plugins?orderBy=name | 
       jq '.items[] | select(.internal=='false') | .slug' | tr -d '"'); do 
       grafana-cli --pluginsDir "${GF_PLUGIN_DIR}" plugins install $plugin; done</b>
 </pre>
+
+---
+title: Ansible Container
+class: segue dark nobackground
 
 ---
 title: Ansible Container
@@ -56,7 +60,7 @@ sudo pip install ansible-container
 A tool to build Docker images and orchestrate containers using only Ansible playbooks
 instead of Dockerfile + shell + docker-compose combination.
 
-Ansible Container allows using some ansible features:
+Ansible Container allows using several ansible features:
 
 - Vars
 - Templates
