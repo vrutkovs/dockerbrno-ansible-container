@@ -248,11 +248,13 @@ registries:
       <h3></h3>
     </hgroup>
     <article ><ul>
-<li>Creates <code>ansible_ansible-container</code> and <code>ansible_&lt;service name&gt;</code> containers</li>
-<li><code>ansible-container</code> connects to service containers</li>
-<li>Runs the playbook </li>
-<li>Commits the resulting images</li>
-<li>Can flatten the image in one layer</li>
+<li><code>ansible-container build</code> creates a build container:
+   "ansible_ansible-container" and containers for services:
+   "ansible_&lt;service name>"</li>
+<li>Build container adds service container to the inventory</li>
+<li>Build container runs the playbook</li>
+<li>The result is committed and the images are exported</li>
+<li>The image can be 'flattened' into a single layer</li>
 </ul></article>
  
 </slide>

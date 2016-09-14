@@ -146,11 +146,13 @@ title: main.yml - playbook
 ---
 title: Build process
 
- - Creates `ansible_ansible-container` and `ansible_<service name>` containers
- - `ansible-container` connects to service containers
- - Runs the playbook 
- - Commits the resulting images
- - Can flatten the image in one layer
+ - `ansible-container build` creates a build container:
+   "ansible_ansible-container" and containers for services:
+   "ansible_<service name\>"
+ - Build container adds service container to the inventory
+ - Build container runs the playbook
+ - The result is committed and the images are exported
+ - The image can be 'flattened' into a single layer
 
 ---
 title: Build log
